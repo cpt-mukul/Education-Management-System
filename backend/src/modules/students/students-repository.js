@@ -62,7 +62,7 @@ const findStudentDetail = async (id) => {
             p.dob,
             p.class_name AS "class",
             p.section_name AS "section",
-            p.roll,
+           p.roll::TEXT AS "roll",
             p.father_name AS "fatherName",
             p.father_phone AS "fatherPhone",
             p.mother_name AS "motherName",
@@ -98,6 +98,30 @@ const findStudentToSetStatus = async ({ userId, reviewerId, status }) => {
     return rowCount
 }
 
+const deleteStudentById = async (id) => {
+    const query = `
+        WITH deleted_leaves AS (
+            DELETE FROM user_leaves
+            WHERE user_id = $1
+        ),
+        deleted_leave_policies AS (
+            DELETE FROM user_leave_policy
+            WHERE user_id = $1
+        ),
+        deleted_profile AS (
+            DELETE FROM user_profiles
+            WHERE user_id = $1
+        )
+        DELETE FROM users
+        WHERE id = $1 AND role_id = 3
+    `;
+
+    const queryParams = [id];
+    const { rowCount } = await processDBRequest({ query, queryParams });
+
+    return rowCount;
+};
+
 const findStudentToUpdate = async (paylaod) => {
     const { basicDetails: { name, email }, id } = paylaod;
     const currentDate = new Date();
@@ -117,5 +141,6 @@ module.exports = {
     addOrUpdateStudent,
     findStudentDetail,
     findStudentToSetStatus,
-    findStudentToUpdate
+    findStudentToUpdate,
+     deleteStudentById
 };
